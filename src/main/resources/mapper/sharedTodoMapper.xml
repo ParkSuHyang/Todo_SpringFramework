@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.github.todo.mapper.SharedTodoMapper">	
+	<insert id="createSharedTodo" parameterType="com.github.todo.vo.SharedTodo" >
+		INSERT INTO shared_todo (todoId, userId) values (#{todoId}, #{userId})
+	</insert>
+	
+	<select id="isExistSharedTodo" parameterType="com.github.todo.vo.SharedTodo" resultType="Integer">
+		SELECT 
+   			EXISTS( SELECT 
+            			todoId, userId
+        			FROM
+            			shared_todo
+       				WHERE
+            			todoId = #{todoId} AND userId = #{userId});
+	</select>
+	
+	<delete id="deleteSharedTodo" parameterType="com.github.todo.vo.SharedTodo" >
+		DELETE FROM shared_todo 
+		WHERE
+    	userId = #{userId} AND todoId = #{todoId}
+	</delete>
+	
+	<delete id="deleteSharedTodoList" parameterType="java.util.List">
+		DELETE FROM shared_todo WHERE 
+		<foreach collection="list" item="sharedTodo" index="index"  separator="or">
+		(todoId = #{sharedTodo.todoId} AND userId = #{sharedTodo.userId})
+		</foreach>
+	</delete>
+	
+	<select id="getSharedTodoByTodoId" parameterType="Integer" resultType="com.github.todo.vo.SharedTodo">
+		SELECT todoId, userId
+		FROM shared_todo
+		where todoId = #{todoId}
+	</select>
+
+	<select id="getSharedTodoByUserId" parameterType="String" resultType="com.github.todo.vo.SharedTodo">
+		SELECT todoId, userId
+		FROM shared_todo
+		where userId=#{userId}
+	</select>
+	
+	<select id="getUserIdByTodoId" parameterType="Integer" resultType="String">
+		SELECT userId
+		FROM shared_todo
+		where todoId=#{todoId};
+	</select>
+	
+</mapper>
+

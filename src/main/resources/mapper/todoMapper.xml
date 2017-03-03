@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.github.todo.mapper.TodoMapper">
+	<resultMap type="com.github.todo.vo.Todo" id="Todo">
+		<id column="id" property="id"/>
+		<result column="userId" property="userId"/>
+		<result column="name" property="name"/>
+		<result column="endDate" property="endDate"/>
+		<result column="endTime" property="endTime"/>
+		<result column="createTime" property="createTime"/>
+		<result column="updateTime" property="updateTime"/>
+		<result column="state" property="state"/>
+		<association column="tag" property="tag" javaType="com.github.todo.vo.Tag" columnPrefix="">
+			<id column="tagId" property="tagId"/>
+			<result column="tagName" property="tagName"/>
+			<result column="color" property="color"/>
+			<result column="userId" property="userId"/>
+		</association>
+	</resultMap>
+	
+	<insert id="createTodo" parameterType="com.github.todo.vo.Todo">
+		INSERT INTO	todo (name, endDate, endTime, userId, createTime, updateTime)
+		VALUES (#{name}, #{endDate}, #{endTime}, #{userId}, now(), now())
+	</insert> 
+	
+	<update id="updateTodo" parameterType="com.github.todo.vo.Todo">
+		UPDATE todo set
+    		 endDate = #{endDate}, 
+    		 endTime = #{endTime},
+    		 updateTime = now(),
+    		 name = #{name},
+    		 tagId=#{tag.tagId},
+    		 state = #{state}
+  		where id = #{id}
+	</update>
+		
+	<delete id="deleteTodo" parameterType="Integer">
+		DELETE FROM todo
+		WHERE id = #{id}
+	</delete>
+	
+	<select id="getTodoListByTagId" resultMap="Todo" parameterType="Integer">
+		SELECT 			
+			id, 
+			userId, 
+			name,
+			tagId, 
+			endDate, 
+			endTime, 
+			createTime, 
+			updateTime,
+			state
+		FROM todo
+		WHERE tagId = #{id}
+	</select>
+	
+	<select id="getAllTodoList" resultMap="Todo">
+		SELECT 			
+			id, 
+			userId, 
+			name,
+			tagId, 
+			endDate, 
+			endTime, 
+			createTime, 
+			updateTime,
+			state
+		FROM todo
+	</select>
+	
+	<select id="getTodo" resultMap="Todo" parameterType="Integer">
+		SELECT 
+			h.id, 
+			h.userId, 
+			h.name, 
+			h.endDate, 
+			h.endTime, 
+			h.createTime, 
+			h.updateTime,
+			h.state,
+			g.tagId, 
+			g.tagName, 
+			g.color,
+			g.userId
+		FROM 
+			todo h 
+			left outer join 
+			tag g ON h.tagId = g.tagId
+		WHERE h.id = #{id}
+	</select>
+	
+	<select id="getTodoListByDateType" resultMap="Todo" parameterType="Map">
+		SELECT 
+		    t.id,
+		    t.name,
+		    t.endDate,
+		    t.endTime,
+		    t.tagId,
+		    t.userId,
+		    t.createTime,
+		    t.updateTime,
+		    t.state,
+		    g.tagId,
+		    g.tagName,
+		    g.color,
+		    g.userId
+		FROM
+    		todo t
+        		LEFT OUTER JOIN
+    		tag g ON t.tagId = g.tagId
+    	WHERE
+    		(t.userId = #{userId}
+        		OR t.id IN (SELECT 
+            		todoId
+       			FROM
+            		shared_todo
+        		WHERE
+            		userId = #{userId}))
+        			<if test="dateType.equals('todayTodo')">AND TO_DAYS(t.endDate) - TO_DAYS(CURRENT_DATE()) = 0 </if>
+        			<if test="dateType.equals('tomorrowTodo')">AND TO_DAYS(t.endDate) - TO_DAYS(CURRENT_DATE()) = 1 </if>
+        			<if test="dateType.equals('laterTodo')">AND TO_DAYS(t.endDate) - TO_DAYS(CURRENT_DATE()) <![CDATA[  > ]]>1 </if>
+        			<if test="dateType.equals('pastTodo')">AND TO_DAYS(t.endDate) <![CDATA[ < ]]>TO_DAYS(CURRENT_DATE()) </if>
+        			<if test="dateType.equals('undefinedTodo')">AND (t.endDate is null or t.endTime is null) </if>
+        		AND t.state=1;
+	</select>
+	
+	<select id="getTodoListByTagIdAndDateType" resultMap="Todo" parameterType="Map">
+		SELECT 
+		    t.id,
+		    t.name,
+		    t.endDate,
+		    t.endTime,
+		    t.tagId,
+		    t.userId,
+		    t.createTime,
+		    t.updateTime,
+		    t.state,
+		    g.tagId,
+		    g.tagName,
+		    g.color,
+		    g.userId
+		FROM
+    		todo t
+        		LEFT OUTER JOIN
+    		tag g ON t.tagId = g.tagId
+    	WHERE
+    		(t.userId = #{userId}
+        		OR t.id IN (SELECT 
+            		todoId
+       			FROM
+            		shared_todo
+        		WHERE
+            		userId = #{userId}))
+        			<if test="dateType.equals('todayTodo')">AND TO_DAYS(t.endDate) - TO_DAYS(CURRENT_DATE()) = 0 </if>
+        			<if test="dateType.equals('tomorrowTodo')">AND TO_DAYS(t.endDate) - TO_DAYS(CURRENT_DATE()) = 1 </if>
+        			<if test="dateType.equals('laterTodo')">AND TO_DAYS(t.endDate) - TO_DAYS(CURRENT_DATE()) <![CDATA[  > ]]>1 </if>
+        			<if test="dateType.equals('pastTodo')">AND TO_DAYS(t.endDate) <![CDATA[ < ]]>TO_DAYS(CURRENT_DATE()) </if>
+        			<if test="dateType.equals('undefinedTodo')">AND (t.endDate is null or t.endTime is null) </if>
+        		AND g.tagId = #{tagId}
+        		AND t.state=1;
+	</select>
+</mapper> 

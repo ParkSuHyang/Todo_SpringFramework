@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.github.todo.mapper.TagMapper">
+	<select id="getTagListByUserId" resultType="com.github.todo.vo.Tag" parameterType="String">
+		SELECT 
+    		tagId, tagName, color, userId
+		FROM
+    		tag
+		WHERE
+    		userId = #{userId}
+	</select>
+
+	<select id="getTagById" resultType="com.github.todo.vo.Tag" parameterType="Integer">
+		SELECT 
+    		tagId, tagName, color, userId
+		FROM
+    		tag
+		WHERE
+    		tagId = #{tagId}
+	</select>
+
+	<insert id="createTag" parameterType="com.github.todo.vo.Tag">
+		INSERT INTO tag (tagName, color, userId) VALUES(#{tagName}, #{color}, #{userId})
+	</insert>
+
+	<delete id="deleteTag" parameterType="Integer">
+		DELETE FROM tag 
+		WHERE tagId = #{tagId};
+	</delete>
+
+	<update id="updateTag" parameterType="com.github.todo.vo.Tag">
+		UPDATE tag set 
+			tagName = #{tagName}, color = #{color}
+		where tagId = #{tagId}
+	</update>
+	
+</mapper>
+
